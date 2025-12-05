@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm Tra 15 Phút: Sự Rơi Tự Do</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .header-info {
+            text-align: center;
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .question-card {
+            background: #fff;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+        }
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+        .options li {
+            margin-bottom: 10px;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1em;
+            position: relative;
+        }
+        .option-btn:hover {
+            background-color: #f0f8ff;
+            border-color: #3498db;
+        }
+        .option-btn.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .option-btn.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .feedback {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            background-color: #e2e3e5;
+            border: 1px solid #d6d8db;
+        }
+        .score-board {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        @media (max-width: 600px) {
+            .score-board {
+                position: static;
+                text-align: center;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="score-board">Điểm: <span id="score">0</span>/15</div>
+
+    <div class="header-info">
+        <h1>Kiểm Tra Nhanh: Sự Rơi Tự Do</h1>
+        <p>Giáo viên: Thầy Song Toàn</p>
+        <p>Mức độ: Nhận biết - Thông hiểu</p>
+        <p><em>Hãy chọn đáp án đúng nhất. Hệ thống sẽ hiển thị lời giải ngay sau khi chọn.</em></p>
+    </div>
+
+    <div id="quiz-container">
+        </div>
+
+    <script>
+        // Dữ liệu câu hỏi - Đã thêm '\\' để escape ký tự đặc biệt cho LaTeX
+        const quizData = [
+            {
+                question: "Sự rơi tự do là sự rơi chỉ dưới tác dụng của:",
+                options: [
+                    "Trọng lực và lực cản không khí.",
+                    "Lực cản không khí.",
+                    "Trọng lực.",
+                    "Lực ma sát."
+                ],
+                correct: 2,
+                explanation: "Theo định nghĩa: Sự rơi tự do là sự rơi chỉ dưới tác dụng của trọng lực."
+            },
+            {
+                question: "Đặc điểm nào sau đây <strong>không phải</strong> là của sự rơi tự do?",
+                options: [
+                    "Phương thẳng đứng.",
+                    "Chiều từ trên xuống dưới.",
+                    "Chuyển động thẳng nhanh dần đều.",
+                    "Vận tốc ban đầu khác 0."
+                ],
+                correct: 3,
+                explanation: "Sự rơi tự do luôn có vận tốc ban đầu $v_0 = 0$."
+            },
+            {
+                question: "Công thức tính quãng đường đi được của sự rơi tự do là:",
+                options: [
+                    "$h = g \\cdot t^2$",
+                    "$h = \\frac{1}{2}g \\cdot t^2$",
+                    "$h = v \\cdot t$",
+                    "$h = 2g \\cdot t$"
+                ],
+                correct: 1,
+                explanation: "Công thức quãng đường rơi tự do: $h = \\frac{1}{2}gt^2$."
+            },
+            {
+                question: "Công thức tính vận tốc của sự rơi tự do tại thời điểm t là:",
+                options: [
+                    "$v = g \\cdot t$",
+                    "$v = \\frac{1}{2}g \\cdot t$",
+                    "$v = g \\cdot t^2$",
+                    "$v = \\sqrt{2gh}$"
+                ],
+                correct: 0,
+                explanation: "Công thức vận tốc theo thời gian: $v = g \\cdot t$."
+            },
+            {
+                question: "Tại cùng một nơi trên Trái Đất và ở gần mặt đất, các vật rơi tự do sẽ:",
+                options: [
+                    "Có gia tốc khác nhau tùy thuộc vào khối lượng.",
+                    "Có cùng một gia tốc rơi tự do $g$.",
+                    "Vật nặng rơi nhanh hơn vật nhẹ.",
+                    "Vật nhẹ rơi nhanh hơn vật nặng."
+                ],
+                correct: 1,
+                explanation: "Tại cùng một nơi, mọi vật rơi tự do đều có cùng một gia tốc $g$, không phụ thuộc vào khối lượng."
+            },
+            {
+                question: "Trong chuyển động rơi tự do, đồ thị vận tốc theo thời gian $v(t)$ có dạng là:",
+                options: [
+                    "Một đường parabol.",
+                    "Một đường thẳng đi qua gốc tọa độ.",
+                    "Một đường thẳng song song với trục thời gian.",
+                    "Một đường cong bất kỳ."
+                ],
+                correct: 1,
+                explanation: "Vì $v = g \\cdot t$ (dạng $y = ax$) nên đồ thị là đường thẳng đi qua gốc tọa độ."
+            },
+            {
+                question: "Một vật rơi tự do, lấy $g = 10 m/s^2$. Vận tốc của vật sau 2 giây là:",
+                options: [
+                    "10 m/s",
+                    "20 m/s",
+                    "5 m/s",
+                    "40 m/s"
+                ],
+                correct: 1,
+                explanation: "Áp dụng $v = g \\cdot t = 10 \\cdot 2 = 20 \\text{ (m/s)}$."
+            },
+            {
+                question: "Một vật rơi tự do từ độ cao h xuống đất. Công thức liên hệ giữa vận tốc v khi chạm đất và độ cao h là:",
+                options: [
+                    "$v^2 = gh$",
+                    "$v^2 = 2gh$",
+                    "$v = 2gh$",
+                    "$v = \\sqrt{gh}$"
+                ],
+                correct: 1,
+                explanation: "Công thức độc lập thời gian: $v^2 - v_0^2 = 2gh \\Rightarrow v^2 = 2gh$ (do $v_0=0$)."
+            },
+            {
+                question: "Thả một hòn đá rơi tự do từ độ cao 20m xuống đất, lấy $g = 10 m/s^2$. Thời gian để hòn đá chạm đất là:",
+                options: [
+                    "1 giây",
+                    "2 giây",
+                    "3 giây",
+                    "4 giây"
+                ],
+                correct: 1,
+                explanation: "Áp dụng $t = \\sqrt{\\frac{2h}{g}} = \\sqrt{\\frac{2 \\cdot 20}{10}} = \\sqrt{4} = 2 \\text{ (s)}$."
+            },
+            {
+                question: "Gia tốc rơi tự do $g$ phụ thuộc vào yếu tố nào?",
+                options: [
+                    "Khối lượng của vật.",
+                    "Kích thước của vật.",
+                    "Vĩ độ địa lý và độ cao so với mặt đất.",
+                    "Vận tốc ban đầu của vật."
+                ],
+                correct: 2,
+                explanation: "Gia tốc $g$ thay đổi theo vĩ độ (cực lớn hơn xích đạo) và giảm dần theo độ cao."
+            },
+            {
+                question: "Hai vật có khối lượng $m_1 > m_2$ rơi tự do tại cùng một độ cao (bỏ qua sức cản không khí). Kết luận nào sau đây đúng?",
+                options: [
+                    "Vật 1 chạm đất trước vật 2.",
+                    "Vật 2 chạm đất trước vật 1.",
+                    "Hai vật chạm đất cùng lúc.",
+                    "Vận tốc chạm đất của vật 1 lớn hơn vật 2."
+                ],
+                correct: 2,
+                explanation: "Trong chân không (rơi tự do), thời gian rơi $t = \\sqrt{\\frac{2h}{g}}$ không phụ thuộc khối lượng, nên chạm đất cùng lúc."
+            },
+            {
+                question: "Một vật rơi tự do, trong giây đầu tiên đi được quãng đường bao nhiêu? (Lấy $g = 10 m/s^2$)",
+                options: [
+                    "10 m",
+                    "5 m",
+                    "20 m",
+                    "1 m"
+                ],
+                correct: 1,
+                explanation: "Quãng đường trong 1s đầu: $h = \\frac{1}{2}gt^2 = \\frac{1}{2} \\cdot 10 \\cdot 1^2 = 5 \\text{ (m)}$."
+            },
+            {
+                question: "Chuyển động của vật ném ngang và rơi tự do có điểm chung là:",
+                options: [
+                    "Quỹ đạo giống nhau.",
+                    "Thời gian chuyển động bằng nhau (nếu cùng độ cao).",
+                    "Vận tốc chạm đất bằng nhau.",
+                    "Vận tốc ban đầu bằng nhau."
+                ],
+                correct: 1,
+                explanation: "Thành phần chuyển động theo phương thẳng đứng của ném ngang chính là rơi tự do, nên thời gian rơi là như nhau."
+            },
+            {
+                question: "Từ công thức $h = \\frac{1}{2}gt^2$, ta có thể suy ra công thức tính thời gian t là:",
+                options: [
+                    "$t = \\frac{2h}{g}$",
+                    "$t = \\sqrt{\\frac{h}{2g}}$",
+                    "$t = \\sqrt{\\frac{2h}{g}}$",
+                    "$t = \\frac{h^2}{2g}$"
+                ],
+                correct: 2,
+                explanation: "Biến đổi toán học: $2h = gt^2 \\Rightarrow t^2 = \\frac{2h}{g} \\Rightarrow t = \\sqrt{\\frac{2h}{g}}$."
+            },
+            {
+                question: "Khi một vật rơi tự do, chuyển động của vật có tính chất:",
+                options: [
+                    "Gia tốc tăng dần theo thời gian.",
+                    "Vận tốc không đổi.",
+                    "Gia tốc không đổi (hằng số).",
+                    "Gia tốc giảm dần theo thời gian."
+                ],
+                correct: 2,
+                explanation: "Rơi tự do là chuyển động nhanh dần đều nên gia tốc $g$ là không đổi theo thời gian."
+            }
+        ];
+
+        let score = 0;
+        const quizContainer = document.getElementById('quiz-container');
+        const scoreDisplay = document.getElementById('score');
+
+        // Hàm khởi tạo câu hỏi
+        function initQuiz() {
+            quizData.forEach((item, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question-card');
+                
+                // Tạo tiêu đề câu hỏi
+                const questionTitle = document.createElement('div');
+                questionTitle.classList.add('question-text');
+                questionTitle.innerHTML = `Câu ${index + 1}: ${item.question}`;
+                questionDiv.appendChild(questionTitle);
+
+                // Tạo danh sách đáp án
+                const optionsList = document.createElement('ul');
+                optionsList.classList.add('options');
+
+                item.options.forEach((opt, optIndex) => {
+                    const li = document.createElement('li');
+                    const btn = document.createElement('button');
+                    btn.classList.add('option-btn');
+                    btn.innerHTML = opt; 
+                    
+                    // Sự kiện click
+                    btn.onclick = () => checkAnswer(btn, index, optIndex, item.correct, item.explanation);
+                    
+                    li.appendChild(btn);
+                    optionsList.appendChild(li);
+                });
+
+                questionDiv.appendChild(optionsList);
+
+                // Khu vực hiển thị giải thích
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `feedback-${index}`;
+                feedbackDiv.classList.add('feedback');
+                questionDiv.appendChild(feedbackDiv);
+
+                quizContainer.appendChild(questionDiv);
+            });
+            
+            // Yêu cầu MathJax render lại các công thức sau khi chèn vào DOM
+            if (window.MathJax) {
+                 MathJax.typesetPromise();
+            }
+        }
+
+        // Hàm kiểm tra đáp án
+        function checkAnswer(selectedBtn, questionIndex, selectedOptIndex, correctIndex, explanation) {
+            const feedbackDiv = document.getElementById(`feedback-${questionIndex}`);
+            const buttons = selectedBtn.parentElement.parentElement.getElementsByTagName('button');
+
+            // Vô hiệu hóa các nút sau khi chọn
+            for (let btn of buttons) {
+                btn.disabled = true;
+                btn.style.cursor = 'default';
+            }
+
+            // Kiểm tra đúng sai
+            if (selectedOptIndex === correctIndex) {
+                selectedBtn.classList.add('correct');
+                score++;
+                scoreDisplay.textContent = score;
+                feedbackDiv.innerHTML = `<strong>Chính xác!</strong><br>${explanation}`;
+                feedbackDiv.style.backgroundColor = "#d4edda";
+                feedbackDiv.style.color = "#155724";
+            } else {
+                selectedBtn.classList.add('incorrect');
+                // Highlight đáp án đúng
+                buttons[correctIndex].classList.add('correct');
+                feedbackDiv.innerHTML = `<strong>Chưa đúng!</strong><br>Đáp án đúng là phương án thứ ${correctIndex + 1}.<br>${explanation}`;
+                feedbackDiv.style.backgroundColor = "#f8d7da";
+                feedbackDiv.style.color = "#721c24";
+            }
+
+            feedbackDiv.style.display = 'block';
+            
+            // Render lại MathJax trong phần giải thích vừa hiện ra
+            MathJax.typesetPromise([feedbackDiv]);
+        }
+
+        // Chạy khởi tạo
+        initQuiz();
+
+    </script>
+</body>
+</html>
